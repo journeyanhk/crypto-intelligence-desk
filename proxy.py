@@ -218,7 +218,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self._reply(403, b'{"error":"origin not allowed"}')
             return self._forward("GET")
         if path == "/ping":
-            return self._reply(200, b'{"ok":true,"app":"crypto-intelligence-desk","version":"1.0.1"}')
+            return self._reply(200, b'{"ok":true,"app":"crypto-intelligence-desk","version":"1.0.2"}')
         self._reply(404, b'{"error":"not found"}')
 
     def do_POST(self):

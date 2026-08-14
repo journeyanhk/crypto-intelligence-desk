@@ -714,8 +714,11 @@ async function detectCurrentModels(){
     if(!models.length)throw new Error('empty_models');
     const list=$('#modelOptions');
     if(list)list.innerHTML=models.map(x=>`<option value="${esc(x)}"></option>`).join('');
+    const sel=$('#pModelSelect');
+    if(sel)sel.innerHTML='<option value="">选择模型…</option>'+models.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
     const picked=chooseDetectedModel(id,models,modelEl.value.trim());
     modelEl.value=picked;
+    if(sel&&picked)sel.value=picked;
     setModelDetectStatus(`已匹配 ${models.length} 个可用模型 · 当前选择 ${picked}`,'ok');
   }catch(e){
     if(seq===modelDetectSeq)setModelDetectStatus(safeModelDetectError(e),'bad');
@@ -1050,8 +1053,11 @@ function renderSettings(){
       <div class="frow"><label>API Key</label><input type="password" id="pKey" value="${esc(u.key||'')}" placeholder="${id==='deepseek'?'sk-... (platform.deepseek.com 申请)':'API Key'}"></div>
       <div class="frow"><label>模型名</label><div class="model-field">
         <input type="text" id="pModel" list="modelOptions" value="${esc(u.model||'')}" placeholder="自动检测，也可手动填写">
-        <datalist id="modelOptions"></datalist><button type="button" class="sbtn" id="btnDetectModel">重新检测</button>
+        <datalist id="modelOptions"></datalist>
+        <select id="pModelSelect" class="hsel" title="点击展开可用模型列表" style="min-width:130px;flex:1"><option value="">选择模型…</option></select>
+        <button type="button" class="sbtn" id="btnDetectModel">重新检测</button>
       </div></div><div class="model-detect-status" id="modelDetectStatus">输入 API Key 后自动检测可用模型</div>`;
+    $('#pModelSelect').onchange=e=>{if(e.target.value)$('#pModel').value=e.target.value};
     $('#pKey').oninput=()=>scheduleModelDetection();
     $('#pKey').onchange=()=>scheduleModelDetection(0);
     $('#pKey').onpaste=()=>scheduleModelDetection(120);
