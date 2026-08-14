@@ -127,6 +127,39 @@ class AcwScV2Tests(unittest.TestCase):
                 self.assertIn(len(out), (len(arg), len(arg) - 1))
 
 
+class AllowedOriginsTests(unittest.TestCase):
+    """任务 1.1 扩展: CID_ALLOWED_ORIGINS 环境变量白名单解析。"""
+
+    def test_valid_origins_accepted(self):
+        with mock.patch.dict(
+            os.environ,
+            {"CID_ALLOWED_ORIGINS": "https://crypto-intelligence-desk.032588.xyz, http://example.com:8080"},
+            clear=False,
+        ):
+            origins = proxy.parse_allowed_origins()
+        self.assertEqual(
+            origins,
+            {"https://crypto-intelligence-desk.032588.xyz", "http://example.com:8080"},
+        )
+
+    def test_trailing_slash_normalized(self):
+        with mock.patch.dict(os.environ, {"CID_ALLOWED_ORIGINS": "https://a.example.com/"}, clear=False):
+            self.assertEqual(proxy.parse_allowed_origins(), {"https://a.example.com"})
+
+    def test_invalid_origins_ignored(self):
+        with mock.patch.dict(
+            os.environ,
+            {"CID_ALLOWED_ORIGINS": "javascript:alert(1), https://x.example.com/path, "
+             "https://user:pass@x.example.com, ftp://x.example.com, not-a-url, ,"},
+            clear=False,
+        ):
+            self.assertEqual(proxy.parse_allowed_origins(), set())
+
+    def test_empty_env_returns_empty(self):
+        with mock.patch.dict(os.environ, {"CID_ALLOWED_ORIGINS": ""}, clear=False):
+            self.assertEqual(proxy.parse_allowed_origins(), set())
+
+
 class IntegrationTests(unittest.TestCase):
     """任务 3.4: 随机端口启动真实服务,覆盖本地 HTTP 路径。"""
 

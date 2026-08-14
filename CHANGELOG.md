@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+- 新增 `CID_ALLOWED_ORIGINS` 环境变量:以逗号分隔配置额外可信来源(如 `https://your-domain.example`),支持 nginx 反代等公网部署场景;仅接受 http(s):// 开头的完整 origin,非法格式自动忽略。
+- `/ping` 返回版本号同步为 1.1.0。
+
 ## 1.0.2
 
 - 修复模型名下拉框无法点击展开的问题（datalist 无原生下拉交互，改为原生 select 下拉，选择后自动回填模型输入框）。

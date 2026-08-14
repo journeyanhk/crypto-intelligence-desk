@@ -31,10 +31,34 @@ except ValueError:
 BASE = os.path.dirname(os.path.abspath(__file__))
 MAX_REQUEST_BODY = 2 * 1024 * 1024
 MAX_RESPONSE_BODY = 12 * 1024 * 1024
+
+
+def parse_allowed_origins():
+    """从 CID_ALLOWED_ORIGINS 环境变量读取额外可信来源(逗号分隔)。
+
+    仅接受 http:// 或 https:// 开头的完整 origin(不含路径、查询与凭据)。
+    用于 nginx 反代等公网部署场景; 校验失败或格式非法的项会被忽略。
+    """
+    origins = set()
+    for item in os.environ.get("CID_ALLOWED_ORIGINS", "").split(","):
+        item = item.strip().rstrip("/")
+        if not item:
+            continue
+        try:
+            p = urllib.parse.urlparse(item)
+            if (p.scheme in ("http", "https") and p.netloc
+                    and not p.path and not p.query
+                    and not p.username and not p.password):
+                origins.add(item)
+        except ValueError:
+            continue
+    return origins
+
+
 ALLOWED_APP_ORIGINS = {
     "http://127.0.0.1:%d" % PORT,
     "http://localhost:%d" % PORT,
-}
+} | parse_allowed_origins()
 
 # 允许从浏览器透传到目标服务器的请求头(鉴权用)
 FORWARD_HEADERS = {"authorization", "x-api-key", "anthropic-version", "x-goog-api-key", "content-type"}
@@ -218,7 +242,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self._reply(403, b'{"error":"origin not allowed"}')
             return self._forward("GET")
         if path == "/ping":
-            return self._reply(200, b'{"ok":true,"app":"crypto-intelligence-desk","version":"1.0.2"}')
+            return self._reply(200, b'{"ok":true,"app":"crypto-intelligence-desk","version":"1.1.0"}')
         self._reply(404, b'{"error":"not found"}')
 
     def do_POST(self):
